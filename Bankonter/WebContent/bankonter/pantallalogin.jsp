@@ -1,6 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1"
     pageEncoding="ISO-8859-1"%>
-<%@page import="Bankonter.ConectaBD"%>
 
 
 <!DOCTYPE html>
@@ -27,22 +26,6 @@
 
 <body class="bg-gradient-primary">
 
-  <%
-            if(ConectaBD.conecta()!=null)
-            {
-            %>
-            Conectado a la Base de Datos, a trabajar!
-   
-            <%
-            ConectaBD.conecta().close();
-            } 
-            else    
-            {
-            %>
-            Hubo un error al conectar, revisa los parametros!
-            <%
-            }    
-        %>
 
   <div class="container">
 
@@ -59,7 +42,7 @@
               <div class="col-lg-6">
                 <div class="p-5">
                   <div class="text-center">
-                    <h1 class="h4 text-gray-900 mb-4">Welcome Back!</h1>
+                    <h1 class="h4 text-gray-900 mb-4">Bienvenido!</h1>
                   </div>
                   <form class="user">
                     <div class="form-group">
@@ -71,26 +54,20 @@
                     <div class="form-group">
                       <div class="custom-control custom-checkbox small">
                         <input type="checkbox" class="custom-control-input" id="customCheck">
-                        <label class="custom-control-label" for="customCheck">Remember Me</label>
+                        <label class="custom-control-label" for="customCheck">Recordar</label>
                       </div>
                     </div>
-                    <a href="index.html" class="btn btn-primary btn-user btn-block">
-                      Login
-                    </a>
-                    <hr>
-                    <a href="index.html" class="btn btn-google btn-user btn-block">
-                      <i class="fab fa-google fa-fw"></i> Login with Google
-                    </a>
-                    <a href="index.html" class="btn btn-facebook btn-user btn-block">
-                      <i class="fab fa-facebook-f fa-fw"></i> Login with Facebook
-                    </a>
+                    <button type="button" class="btn btn-primary btn-user btn-block" id="logar">
+                      Entrar
+                    </button>
+                  
                   </form>
                   <hr>
                   <div class="text-center">
-                    <a class="small" href="forgot-password.html">Forgot Password?</a>
+                    <a class="small" href="forgot-password.html">Has olvidado tu contraseña?</a>
                   </div>
                   <div class="text-center">
-                    <a class="small" href="register.html">Create an Account!</a>
+                    <a class="small" href="register.html">Regístrate y Crea tu Cuenta!</a>
                   </div>
                 </div>
               </div>
@@ -103,6 +80,9 @@
     </div>
 
   </div>
+  
+  
+  
 
   <!-- Bootstrap core JavaScript-->
   <script src="vendor/jquery/jquery.min.js"></script>
@@ -113,6 +93,23 @@
 
   <!-- Custom scripts for all pages-->
   <script src="js/sb-admin-2.min.js"></script>
+  <script src="js/jsquery-utils.js"></script>
+  
+<script>
+    $(document).ready(function () {
+   
+       $("#logar").click(function(){
+        sendJsonRequest ("/Bankonter/AutenticarUsuario", 
+        '{"usuarioOMail":"rafa@rafa.com", "pass":"1234"}',
+        function (data, status) {
+          alert(data);
+        },
+        function (strError) {
+          alert("Error " + strError);
+        });
+       });
+    });
+  </script>
 
 </body>
 
