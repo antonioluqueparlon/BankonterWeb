@@ -1,5 +1,4 @@
 
-
 // Siempre que la página esté completamente cargada se aplica lo siguiente
 $(document).ready(function () {
     /**
@@ -44,7 +43,6 @@ function getRequestParameters() {
  * @param {*} errorFunction 
  */
 function sendJsonRequest(url, jsonSendingData, successFunction, errorFunction) {
-    $('#infoModal').fadeIn('100');
     $.ajax(url, {
         data: jsonSendingData,
         contentType: 'application/json',
@@ -52,13 +50,21 @@ function sendJsonRequest(url, jsonSendingData, successFunction, errorFunction) {
         dataType: 'json',
         success: function (data, status) {
             successFunction(data, status);
-            $('#infoModal').fadeOut();
         },
         error: function (xhr, strError, exception) {
             if (errorFunction != null) {
-                errorFunction(strError);
+                var resumenError = "";
+                // Controlo si ha ocurrido un 404
+                if (xhr.status == 404) {
+                    resumenError = "Error 404 accediendo a " + url;
+                }
+                else {
+                    resumenError = strError + " - " + exception;
+                }
+
+                // Envío el error a la función definida por el usuario
+                errorFunction(xhr, strError, exception, resumenError);
             }
-            $('#infoModal').fadeOut();
         }
     });
 }
@@ -66,6 +72,7 @@ function sendJsonRequest(url, jsonSendingData, successFunction, errorFunction) {
 
 // Variables para especificar el tipo de alerta que se desea mostrar
 var ALERT_INFO = 1;
+var ALERT_DANGER = 2;
 /**
  * Muestra alertas en la parte superior de la página. Si hubiera alertas previas, las elimina con 
  * una suave animación.
@@ -73,7 +80,7 @@ var ALERT_INFO = 1;
  * @param {*} shortMsg 
  * @param {*} msg 
  */
-function showAlertMessage(type, shortMsg, msg) {
+function showAlertMessage(container, type, shortMsg, msg) {
     // Si existen alertas en pantalla, las elimino
     var millisToDelayNewMsg = 0;
     if ($(".alert") != null) {
@@ -89,6 +96,10 @@ function showAlertMessage(type, shortMsg, msg) {
     if (type == ALERT_INFO) {
         htmlToPrepend += ' alert-success ';
     }
+    else if (type == ALERT_DANGER) {
+        htmlToPrepend += ' alert-danger ';
+    }
+
     htmlToPrepend += 'alert-dismissible fade show" role="alert">';
     if (shortMsg != null) {
         htmlToPrepend += '<strong>' + shortMsg + '</strong> ';
@@ -100,10 +111,33 @@ function showAlertMessage(type, shortMsg, msg) {
 
     // Después de construir el html, finalmente lo muestro con una animación
     setTimeout(function () {
-        $("#containerPrincipal").prepend(htmlToPrepend);
+        container.prepend(htmlToPrepend);
     }, millisToDelayNewMsg);
     $(".alert").fadeIn(300);
 }
+
+
+
+
+/**
+ * En esta función recibimos un elemento visible de la página y le acoplamos un
+ * spinner, un elemento que tiene una animación para hacer visible al usuario
+ * que estamos, por ejemplo, procesando una petición
+ * @param {*} containerToPutWaitingIcon 
+ */
+function insertWaitingIcon (containerToPutWaitingIcon) {
+    containerToPutWaitingIcon.addClass("spinner-border spinner-border-sm");
+}
+
+/**
+ * En la función anterior agregamos una animación a un elemento, en esta función
+ * eliminamos ese elemento.
+ * @param {*} containerToPutWaitingIcon 
+ */
+function removeWaitingIcon (containerToPutWaitingIcon) {
+    containerToPutWaitingIcon.removeClass("spinner-border spinner-border-sm");
+}
+
 
 
 /**

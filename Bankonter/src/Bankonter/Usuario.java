@@ -23,6 +23,11 @@ public class Usuario extends Entidad implements Serializable {
 
 	private String password;
 
+	//bi-directional many-to-one association to Imagen
+	@ManyToOne
+	@JoinColumn(name="idImagen")
+	private Imagen imagen;
+
 	public Usuario() {
 	}
 
@@ -56,6 +61,14 @@ public class Usuario extends Entidad implements Serializable {
 
 	public void setPassword(String password) {
 		this.password = password;
+	}
+
+	public Imagen getImagen() {
+		return this.imagen;
+	}
+
+	public void setImagen(Imagen imagen) {
+		this.imagen = imagen;
 	}
 
 }

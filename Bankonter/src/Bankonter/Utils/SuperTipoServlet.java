@@ -21,7 +21,6 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 /**
  * Servlet implementation class SuperTipoServlet
  */
-@WebServlet("/superTipoServlet")
 public class SuperTipoServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
        
