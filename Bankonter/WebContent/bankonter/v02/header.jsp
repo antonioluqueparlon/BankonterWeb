@@ -20,6 +20,12 @@
 
     <script src="../js/jquery-utils.js"></script>
     
+    <!--  la siguiente linea es imporante para que cada version de bankonter
+    llame a los servlets pertenecientes a esta version -->
+    
+    <script>
+    	setServletsprefix("<%=request.getContextPath() + "/bankonter/v02" %>");
+    </script>
     
 
     <!-- Custom fonts for this template-->
@@ -31,3 +37,4 @@
     <link href="../css/sb-admin-2.css" rel="stylesheet">
 </head>
 
+    

@@ -33,6 +33,16 @@ function getRequestParameters() {
     return requestParams;
 };
 
+
+/**
+ * Permite establecer un prefijo que se usará en el acceso a todos los servlets accedidos por
+ * el método "sendJsonRequest"
+ */
+var servletsPrefix = "";
+function setServletsPrefix (newServletsPrefix) {
+	servletsPrefix = newServletsPrefix;
+}
+
 /**
  * Hace una llamada a un request JSON, pasando un json de envío y recibiendo una respuesta.
  * Además también se encarga de activar la ventana modal de "cargando" y de desactivarla cuando
@@ -42,7 +52,13 @@ function getRequestParameters() {
  * @param {*} successFunction 
  * @param {*} errorFunction 
  */
-function sendJsonRequest(url, jsonSendingData, successFunction, errorFunction) {
+function sendJsonRequest(url, jsonSendingData, successFunction, errorFunction, elementToShowWaitingIcon) {
+    // Agrego a la url el prefijo necesario para acceder a la versión concreta de la aplicación
+    url = servletsPrefix + url;
+    // Si se ha especificado un elemento en el que mostrar un icono de carga, se hace
+    if (elementToShowWaitingIcon != null) {
+        insertWaitingIcon(elementToShowWaitingIcon);
+    }
     $.ajax(url, {
         data: jsonSendingData,
         contentType: 'application/json',
@@ -50,20 +66,29 @@ function sendJsonRequest(url, jsonSendingData, successFunction, errorFunction) {
         dataType: 'json',
         success: function (data, status) {
             successFunction(data, status);
+            // si hay un elemento en el que detener la animación de carga, se detiene
+            if (elementToShowWaitingIcon != null) {
+                removeWaitingIcon(elementToShowWaitingIcon);
+            }
         },
         error: function (xhr, strError, exception) {
             if (errorFunction != null) {
                 var resumenError = "";
-                // Controlo si ha ocurrido un 404
-                if (xhr.status == 404) {
-                    resumenError = "Error 404 accediendo a " + url;
+                // Controlo si ha ocurrido un error en el xhr
+                if (xhr != null) {
+                    resumenError += "Error " + xhr.status + " accediendo a " + url;
                 }
-                else {
-                    resumenError = strError + " - " + exception;
-                }
+                // Completo la información del error
+                resumenError += "<br/>StrError: " + strError + "<br/>Exception: " + exception + " - Mensaje: " + exception.message;
+                // Introduzco la info del JSON enviado
+                resumenError += "<br/>JSON enviado: " + jsonSendingData;
 
                 // Envío el error a la función definida por el usuario
-                errorFunction(xhr, strError, exception, resumenError);
+                errorFunction(resumenError);
+            }
+            // si hay un elemento en el que detener la animación de carga, se detiene
+            if (elementToShowWaitingIcon != null) {
+                removeWaitingIcon(elementToShowWaitingIcon);
             }
         }
     });
@@ -159,4 +184,78 @@ function getDataFromFileInput(fileInput, onFileLoadedFunction) {
     else {
         onFileLoadedFunction(null);
     }
+}
+
+
+
+
+
+// Todos los elmentos de un formulario que incorporen la clase "checkValidity" tendrán el comportamiento
+// de comprobar su validez cuando pierdan el foco.
+$(document).ready(function () {
+    $(".checkValidity:input").blur(function () {
+        checkInputFormValidity ($(this)); // Comprobamos la validez del elemento
+    })
+
+    // Lo siguiente es para conseguir que los elementos que tengan clase "bankonterNavBarLink" carguen páginas
+    // en el interior del div "page-content", que es el principal de la página "portal.jsp"
+    $(".bankonterNavBarLink").css("cursor", "pointer");
+    $(".bankonterNavBarLink").click(function() {
+        $("#pageContent").load($(this).attr("toLoadInPageContent"));
+    });
+});
+
+// Expresiones regulares que podremos utilizar en cualquier momento
+const EMAIL_REGULAR_EXPRESION = /\S+@\S+\.\S+/; // Expresión regular para un email -  validity="email"
+const NO_EMPTY_REGULAR_EXPRESION = /.+/;        // Expresión regular para cadena no vacía -  validity="noEmpty" o validity=""
+
+function getRegularExpressionValidityFromElement(element) {
+    var description = element.attr("validity"); // Obtengo el valor del atributo "validity" del elemento
+    if (description == "email") {
+        return EMAIL_REGULAR_EXPRESION;
+    }
+    else { // Si ninguna de las expresiones regulares anteriores se aplica, aplicamos la de NO_EMPTY
+        return NO_EMPTY_REGULAR_EXPRESION;
+    }
+}
+
+/**
+ * Permite comprobar la validez en campos de formularios con respecto a una expresión regular
+ * @param {} inputFormElement 
+ * @param {*} regularExpression 
+ */
+function checkInputFormValidity (inputFormElement) {
+    // Para poder comprobar la validez de un elemento, este tiene que tener un atributo que indique el tipo de validez
+    // que necesita, se admiten varios valores. Estos valores se pueden ver en la función (este mismo fichero) getRegularExpressionValidityFromElement
+    var regularExpression = getRegularExpressionValidityFromElement(inputFormElement);
+    if (!regularExpression.test(inputFormElement.val())) { // Compruebo la validación 
+        inputFormElement.addClass("is-invalid"); // Incluir esta clase provaca un efecto visual en el elemento del formulario
+        return false;
+    }
+    else {
+        inputFormElement.removeClass("is-invalid");
+        return true;
+    }
+}
+
+/**
+ * Comprueba la validez de un formulario, pasando uno a uno por todos sus inputs que tengan la clase "checkValidity"
+ * @param {} form 
+ */
+function checkFormValidity (form) {
+    var formIsValid = true;
+    form.find('.checkValidity:input').each(function (){
+        if (!checkInputFormValidity($(this))) {
+            formIsValid = false;
+        }
+    });
+    return formIsValid;
+}
+
+/**
+ * Formatea el número recibido a un número decimal de tipo moneda
+ * @param {} anyNumber 
+ */
+function formatNumberToCurrency (anyNumber) {
+    return parseFloat(anyNumber).toLocaleString('en-US', {minimumFractionDigits: 2})
 }
